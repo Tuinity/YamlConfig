@@ -175,6 +175,25 @@ public final class TypeAdapterRegistry {
             throw new IllegalArgumentException("No type adapter for " + clazz + " (Forgot @Adaptable?)");
         }
 
+        private static void ensureGenericsInitialised(final TypeAdapterRegistry registry, final ParameterizedType type) throws Exception {
+            for (final Type typeArgument : type.getActualTypeArguments()) {
+                if (typeArgument instanceof Class<?> clazz) {
+                    if (registry.getAdapter(clazz) != null) {
+                        continue;
+                    }
+
+                    for (final Annotation annotation : clazz.getAnnotations()) {
+                        if (annotation instanceof Adaptable adaptable) {
+                            registry.makeAdapter(clazz);
+                            break;
+                        }
+                    }
+                } else if (typeArgument instanceof ParameterizedType parameterizedType) {
+                    ensureGenericsInitialised(registry, parameterizedType);
+                }
+            }
+        }
+
         private static String makeSerializedKey(final String input) {
             final StringBuilder ret = new StringBuilder();
 
@@ -208,6 +227,11 @@ public final class TypeAdapterRegistry {
                     for (final Annotation annotation : field.getAnnotations()) {
                         if (!(annotation instanceof Serializable serializable)) {
                             continue;
+                        }
+
+                        // make sure we auto initialise generic types
+                        if (field.getGenericType() instanceof ParameterizedType parameterizedType) {
+                            ensureGenericsInitialised(registry, parameterizedType);
                         }
 
                         final TypeAdapter<?, ?> adapter;
