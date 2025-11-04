@@ -16,6 +16,7 @@ import ca.spottedleaf.yamlconfig.adapter.type.BigDecimalTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.type.BigIntegerTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.type.DefaultedTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.type.DurationTypeAdapter;
+import ca.spottedleaf.yamlconfig.adapter.type.StringEnumTypeAdapter;
 import ca.spottedleaf.yamlconfig.annotation.Adaptable;
 import ca.spottedleaf.yamlconfig.annotation.Serializable;
 import ca.spottedleaf.yamlconfig.type.DefaultedValue;
@@ -66,6 +67,9 @@ public final class TypeAdapterRegistry {
 
         this.adapters.put(Duration.class, DurationTypeAdapter.INSTANCE);
         this.adapters.put(DefaultedValue.class, DefaultedTypeAdapter.INSTANCE);
+
+        // allow overriding enum handling
+        this.adapters.put(Enum.class, StringEnumTypeAdapter.INSTANCE);
     }
 
     public TypeAdapter<?, ?> putAdapter(final Class<?> clazz, final TypeAdapter<?, ?> adapter) {
@@ -73,16 +77,23 @@ public final class TypeAdapterRegistry {
     }
 
     public TypeAdapter<?, ?> getAdapter(final Class<?> clazz) {
-        return this.adapters.get(clazz);
+        // try to resolve directly
+        TypeAdapter<?, ?> ret = this.adapters.get(clazz);
+        if (ret == null && clazz.isEnum()) {
+            // try to resolve by Enum
+            ret = this.adapters.get(Enum.class);
+        }
+
+        return ret;
     }
 
     public Object deserialize(final Object input, final Type type) {
         TypeAdapter<?, ?> adapter = null;
         if (type instanceof Class<?> clazz) {
-            adapter = this.adapters.get(clazz);
+            adapter = this.getAdapter(clazz);
         }
         if (adapter == null && (type instanceof ParameterizedType parameterizedType)) {
-            adapter = this.adapters.get((Class<?>)parameterizedType.getRawType());
+            adapter = this.getAdapter((Class<?>)parameterizedType.getRawType());
         }
 
         if (adapter == null) {
@@ -95,13 +106,13 @@ public final class TypeAdapterRegistry {
     public Object serialize(final Object input, final Type type) {
         TypeAdapter<?, ?> adapter = null;
         if (type instanceof Class<?> clazz) {
-            adapter = this.adapters.get(clazz);
+            adapter = this.getAdapter(clazz);
         }
         if (adapter == null && (type instanceof ParameterizedType parameterizedType)) {
-            adapter = this.adapters.get((Class<?>)parameterizedType.getRawType());
+            adapter = this.getAdapter((Class<?>)parameterizedType.getRawType());
         }
         if (adapter == null) {
-            adapter = this.adapters.get(input.getClass());
+            adapter = this.getAdapter(input.getClass());
         }
 
         if (adapter == null) {
