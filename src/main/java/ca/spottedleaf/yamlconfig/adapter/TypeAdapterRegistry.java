@@ -3,6 +3,7 @@ package ca.spottedleaf.yamlconfig.adapter;
 import ca.spottedleaf.yamlconfig.InitialiseHook;
 import ca.spottedleaf.yamlconfig.adapter.collection.CollectionTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.collection.ListTypeAdapter;
+import ca.spottedleaf.yamlconfig.adapter.collection.SetTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.collection.SortedMapTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.primitive.BooleanTypeAdapter;
 import ca.spottedleaf.yamlconfig.adapter.primitive.ByteTypeAdapter;
@@ -32,8 +33,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class TypeAdapterRegistry {
 
@@ -59,6 +62,10 @@ public final class TypeAdapterRegistry {
 
         this.adapters.put(Collection.class, CollectionTypeAdapter.INSTANCE);
         this.adapters.put(List.class, ListTypeAdapter.INSTANCE);
+
+        this.adapters.put(Set.class, SetTypeAdapter.INSTANCE);
+        this.adapters.put(LinkedHashSet.class, SetTypeAdapter.INSTANCE);
+
         this.adapters.put(Map.class, SortedMapTypeAdapter.SORTED_CASE_INSENSITIVE);
         this.adapters.put(LinkedHashMap.class, SortedMapTypeAdapter.SORTED_CASE_INSENSITIVE);
 

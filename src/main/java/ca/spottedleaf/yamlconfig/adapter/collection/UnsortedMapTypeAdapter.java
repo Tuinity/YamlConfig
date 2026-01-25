@@ -20,7 +20,7 @@ public final class UnsortedMapTypeAdapter extends TypeAdapter<Map<String, Object
         if (input instanceof Map<?,?> inputMap) {
             final Map<String, Object> castedInput = (Map<String, Object>)inputMap;
 
-            final LinkedHashMap<String, Object> ret = new LinkedHashMap<>();
+            final LinkedHashMap<String, Object> ret = new LinkedHashMap<>(castedInput.size());
 
             for (final Map.Entry<String, Object> entry : castedInput.entrySet()) {
                 ret.put(entry.getKey(), registry.deserialize(entry.getValue(), valueType));
@@ -34,7 +34,7 @@ public final class UnsortedMapTypeAdapter extends TypeAdapter<Map<String, Object
 
     @Override
     public Map<String, Object> serialize(final TypeAdapterRegistry registry, final Map<String, Object> value, final Type type) {
-        final LinkedHashMap<String, Object> ret = new LinkedHashMap<>();
+        final LinkedHashMap<String, Object> ret = new LinkedHashMap<>(value.size());
 
         final Type valueType = type instanceof ParameterizedType parameterizedType ? parameterizedType.getActualTypeArguments()[1] : null;
 
