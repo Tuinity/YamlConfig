@@ -204,13 +204,19 @@ public final class TypeAdapterRegistry {
         private static String makeSerializedKey(final String input) {
             final StringBuilder ret = new StringBuilder();
 
-            for (final char c : input.toCharArray()) {
-                if (!Character.isUpperCase(c)) {
-                    ret.append(c);
-                    continue;
+            final char[] chars = input.toCharArray();
+            for (int i = 0; i < chars.length;) {
+                while (i < chars.length && !Character.isUpperCase(chars[i])) {
+                    ret.append(chars[i++]);
                 }
-                ret.append('-');
-                ret.append(Character.toLowerCase(c));
+
+                if (i < chars.length) {
+                    ret.append('-');
+                }
+
+                while (i < chars.length && Character.isUpperCase(chars[i])) {
+                    ret.append(Character.toLowerCase(chars[i++]));
+                }
             }
 
             return ret.toString();
