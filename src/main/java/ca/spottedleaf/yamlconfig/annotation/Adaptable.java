@@ -12,4 +12,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Adaptable {
+
+    /**
+     * Whether to use the field declaration order instead of sorting the fields by name.
+     */
+    public boolean useDeclarationOrder() default false;
+
 }

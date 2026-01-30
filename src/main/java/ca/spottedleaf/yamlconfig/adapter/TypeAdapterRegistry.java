@@ -129,8 +129,8 @@ public final class TypeAdapterRegistry {
         return ((TypeAdapter)adapter).serialize(this, input, type);
     }
 
-    public <T> TypeAdapter<T, Map<Object, Object>> makeAdapter(final Class<? extends T> clazz) throws Exception {
-        final TypeAdapter<T, Map<Object, Object>> ret = new AutoTypeAdapter<>(this, clazz);
+    public <T> TypeAdapter<T, Map<Object, Object>> makeAdapter(final Class<? extends T> clazz, final Adaptable adaptable) throws Exception {
+        final TypeAdapter<T, Map<Object, Object>> ret = new AutoTypeAdapter<>(this, clazz, adaptable);
 
         this.putAdapter(clazz, ret);
 
@@ -161,10 +161,10 @@ public final class TypeAdapterRegistry {
         private final Constructor<? extends T> constructor;
         private final SerializableField[] fields;
 
-        public AutoTypeAdapter(final TypeAdapterRegistry registry, final Class<? extends T> clazz) throws Exception {
+        public AutoTypeAdapter(final TypeAdapterRegistry registry, final Class<? extends T> clazz, final Adaptable adaptable) throws Exception {
             this.registry = registry;
             this.constructor = clazz.getConstructor();
-            this.fields = findSerializableFields(registry, clazz);
+            this.fields = findSerializableFields(registry, clazz, adaptable);
         }
 
         private static TypeAdapter<?, ?> findOrMakeAdapter(final TypeAdapterRegistry registry, final Class<?> clazz) throws Exception {
@@ -175,7 +175,7 @@ public final class TypeAdapterRegistry {
 
             for (final Annotation annotation : clazz.getAnnotations()) {
                 if (annotation instanceof Adaptable adaptable) {
-                    return registry.makeAdapter(clazz);
+                    return registry.makeAdapter(clazz, adaptable);
                 }
             }
 
@@ -191,7 +191,7 @@ public final class TypeAdapterRegistry {
 
                     for (final Annotation annotation : clazz.getAnnotations()) {
                         if (annotation instanceof Adaptable adaptable) {
-                            registry.makeAdapter(clazz);
+                            registry.makeAdapter(clazz, adaptable);
                             break;
                         }
                     }
@@ -231,7 +231,8 @@ public final class TypeAdapterRegistry {
                 String serializedKey
         ) {}
 
-        private static SerializableField[] findSerializableFields(final TypeAdapterRegistry registry, Class<?> clazz) throws Exception {
+        private static SerializableField[] findSerializableFields(final TypeAdapterRegistry registry, Class<?> clazz,
+                                                                  final Adaptable adaptable) throws Exception {
             final List<SerializableField> ret = new ArrayList<>();
             do {
                 for (final Field field : clazz.getDeclaredFields()) {
@@ -268,9 +269,11 @@ public final class TypeAdapterRegistry {
                 }
             } while ((clazz = clazz.getSuperclass()) != Object.class);
 
-            ret.sort((final SerializableField c1, final SerializableField c2) -> {
-                return c1.serializedKey.compareTo(c2.serializedKey);
-            });
+            if (!adaptable.useDeclarationOrder()) {
+                ret.sort((final SerializableField c1, final SerializableField c2) -> {
+                    return c1.serializedKey.compareTo(c2.serializedKey);
+                });
+            }
 
             return ret.toArray(new SerializableField[0]);
         }

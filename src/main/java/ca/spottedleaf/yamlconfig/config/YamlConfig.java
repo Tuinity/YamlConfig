@@ -1,6 +1,7 @@
 package ca.spottedleaf.yamlconfig.config;
 
 import ca.spottedleaf.yamlconfig.adapter.TypeAdapterRegistry;
+import ca.spottedleaf.yamlconfig.annotation.Adaptable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
@@ -43,10 +45,21 @@ public final class YamlConfig<T> {
     }
 
     public YamlConfig(final Class<? extends T> clazz, final T dfl, final TypeAdapterRegistry registry) throws Exception {
+        Adaptable adaptable = null;
+        for (final Annotation annotation : clazz.getAnnotations()) {
+            if (annotation instanceof Adaptable a) {
+                adaptable = a;
+                break;
+            }
+        }
+        if (adaptable == null) {
+            throw new IllegalArgumentException("Class '" + clazz.getName() + "' must have the Adaptable annotation!");
+        }
+
         this.clazz = clazz;
         this.config = dfl;
         this.typeAdapters = registry;
-        this.typeAdapters.makeAdapter(clazz);
+        this.typeAdapters.makeAdapter(clazz, adaptable);
 
         final LoaderOptions loaderOptions = new LoaderOptions();
         loaderOptions.setProcessComments(true);
