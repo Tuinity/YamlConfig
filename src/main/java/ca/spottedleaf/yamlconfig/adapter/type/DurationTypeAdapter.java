@@ -1,24 +1,19 @@
 package ca.spottedleaf.yamlconfig.adapter.type;
 
-import ca.spottedleaf.yamlconfig.adapter.TypeAdapter;
-import ca.spottedleaf.yamlconfig.adapter.TypeAdapterRegistry;
+import ca.spottedleaf.yamlconfig.adapter.generic.StringFormTypeAdapter;
 import ca.spottedleaf.yamlconfig.type.Duration;
-import java.lang.reflect.Type;
 
-public final class DurationTypeAdapter extends TypeAdapter<Duration, String> {
+public final class DurationTypeAdapter extends StringFormTypeAdapter<Duration> {
 
     public static final DurationTypeAdapter INSTANCE = new DurationTypeAdapter();
 
     @Override
-    public Duration deserialize(final TypeAdapterRegistry registry, final Object input, final Type type) {
-        if (!(input instanceof String string)) {
-            throw new IllegalArgumentException("Not a string: " + input.getClass());
-        }
-        return Duration.parse(string);
+    public Duration fromString(final String value) {
+        return Duration.parse(value);
     }
 
     @Override
-    public String serialize(final TypeAdapterRegistry registry, final Duration value, final Type type) {
+    public String toString(final Duration value) {
         return value.toString();
     }
 }
